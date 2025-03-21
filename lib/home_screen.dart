@@ -216,6 +216,8 @@ class AsistenteDialog extends StatefulWidget {
 class _AsistenteDialogState extends State<AsistenteDialog> {
   final TextEditingController _consultaController = TextEditingController();
   String? _resultado;
+  List<String> _sugerencias = [];
+  int _expandedIndex = -1;
 
   void _buscarProyeccion(String consulta) {
     consulta = consulta.toLowerCase();
@@ -242,12 +244,11 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
     }
   }
 
-  void _navegarAProyeccion(BuildContext context, Map<String, String> info) {
-    // Navegar a través de las pantallas hasta llegar a la proyección específica
+  void _navegarAProyeccion(BuildContext context, Map<String, dynamic> info) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DetailScreen(region: info['region']!),
+        builder: (context) => DetailScreen(region: info['region'] as String),
       ),
     );
   }
@@ -264,7 +265,7 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '¿Qué necesitas encontrar?',
+              '¿Qué patología necesitas estudiar?',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -275,40 +276,38 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
             TextField(
               controller: _consultaController,
               decoration: InputDecoration(
-                hintText: 'Ej: luxación de clavícula',
+                hintText: 'Ej: fractura de clavícula, sinusitis...',
                 border: OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () => _buscarProyeccion(_consultaController.text),
-                ),
+                prefixIcon: Icon(Icons.search),
               ),
-              onSubmitted: _buscarProyeccion,
+              onChanged: (value) {
+                setState(() {
+                  _sugerencias = RadiologiaHelper.buscarSugerencias(value);
+                });
+              },
             ),
-            SizedBox(height: 16),
-            if (_resultado != null)
+            if (_sugerencias.isNotEmpty)
               Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(_resultado!),
-              ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    _mostrarSugerencias(context);
+                height: 200,
+                child: ListView.builder(
+                  itemCount: _sugerencias.length,
+                  itemBuilder: (context, index) {
+                    final patologia = _sugerencias[index];
+                    final info = RadiologiaHelper.guiaRadiologica[patologia]!;
+                    return ListTile(
+                      title: Text(patologia.toUpperCase()),
+                      subtitle: Text(info['descripcion']),
+                      trailing: Text(info['proyeccion']),
+                      onTap: () => _navegarAProyeccion(context, info),
+                    );
                   },
-                  child: Text('Ver sugerencias comunes'),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cerrar'),
-                ),
-              ],
+              ),
+            TextButton(
+              onPressed: () {
+                _mostrarCategoriasPatologias(context);
+              },
+              child: Text('Ver todas las categorías'),
             ),
           ],
         ),
@@ -316,40 +315,72 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
     );
   }
 
-  void _mostrarSugerencias(BuildContext context) {
+  void _mostrarCategoriasPatologias(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          child: Container(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Consultas frecuentes',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              child: Container(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Categorías de Patologías',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: ExpansionPanelList(
+                          expansionCallback: (int index, bool isExpanded) {
+                            setState(() {
+                              _expandedIndex = isExpanded ? index : -1;
+                            });
+                          },
+                          children: RadiologiaHelper.categoriasPatologias.entries
+                              .toList()
+                              .asMap()
+                              .entries
+                              .map((entry) {
+                            int idx = entry.key;
+                            var categoria = entry.value;
+                            return ExpansionPanel(
+                              isExpanded: _expandedIndex == idx,
+                              headerBuilder: (context, isExpanded) {
+                                return ListTile(
+                                  title: Text(categoria.key),
+                                );
+                              },
+                              body: Column(
+                                children: categoria.value.map((patologia) {
+                                  return ListTile(
+                                    title: Text(patologia),
+                                    onTap: () {
+                                      final info = RadiologiaHelper.guiaRadiologica[
+                                          patologia.toLowerCase()];
+                                      if (info != null) {
+                                        _navegarAProyeccion(context, info);
+                                      }
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 12),
-                ...RadiologiaHelper.guiaRadiologica.keys.map((consulta) =>
-                  ListTile(
-                    title: Text(consulta),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      _buscarProyeccion(consulta);
-                    },
-                  ),
-                ).toList(),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text('Cerrar'),
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

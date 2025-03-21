@@ -198,7 +198,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 }
 
-class SubregionScreen extends StatefulWidget {
+class SubregionScreen extends StatelessWidget {
   final String region;
   final String subregion;
   final List<String> proyecciones;
@@ -209,113 +209,107 @@ class SubregionScreen extends StatefulWidget {
     required this.proyecciones,
   });
 
-  @override
-  _SubregionScreenState createState() => _SubregionScreenState();
-}
-
-class _SubregionScreenState extends State<SubregionScreen> {
-  late PageController _pageController;
-  double currentPage = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(
-      viewportFraction: 0.8,
-      initialPage: 0,
-    );
-    _pageController.addListener(() {
-      setState(() {
-        currentPage = _pageController.page ?? 0;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  IconData _getIconForProyeccion(String proyeccion) {
+    switch (proyeccion) {
+      case 'AP':
+        return Icons.arrow_forward;
+      case 'PA':
+        return Icons.arrow_back;
+      case 'Lateral':
+        return Icons.arrow_right;
+      case 'Oblicuas':
+        return Icons.rotate_right;
+      case 'Towne':
+        return Icons.face;
+      case 'Caldwell':
+        return Icons.face_retouching_natural;
+      case 'Waters':
+        return Icons.face_outlined;
+      case 'Hirtz':
+        return Icons.accessibility;
+      default:
+        return Icons.radio_button_checked;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Proyecciones de ${widget.subregion}'),
+        title: Text('Proyecciones de $subregion'),
       ),
-      body: Column(
-        children: [
-          SizedBox(height: 20),
-          Text(
-            'Desliza para ver las proyecciones',
-            style: TextStyle(fontSize: 16),
-          ),
-          Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: widget.proyecciones.length,
-              itemBuilder: (context, index) {
-                double difference = (currentPage - index).abs();
-                double scale = 1 - (difference * 0.2).clamp(0.0, 0.6);
-                double rotate = difference * 0.1;
-
-                return Transform(
-                  transform: Matrix4.identity()
-                    ..setEntry(3, 2, 0.001)
-                    ..scale(scale)
-                    ..rotateY(rotate),
-                  alignment: Alignment.center,
-                  child: GestureDetector(
+      body: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: proyecciones.map((proyeccion) {
+              return Container(
+                width: 160,
+                height: 160,
+                child: Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: InkWell(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => ProyeccionDetailScreen(
-                            region: widget.region,
-                            subregion: widget.subregion,
-                            proyeccion: widget.proyecciones[index],
+                            region: region,
+                            subregion: subregion,
+                            proyeccion: proyeccion,
                           ),
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 8.0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Container(
-                        height: 400,
-                        margin: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Theme.of(context).primaryColor,
-                              Theme.of(context).primaryColor.withOpacity(0.7),
-                            ],
-                          ),
+                    borderRadius: BorderRadius.circular(15),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.7),
+                          ],
                         ),
-                        child: Center(
-                          child: Text(
-                            widget.proyecciones[index],
-                            style: TextStyle(
-                              fontSize: 24,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _getIconForProyeccion(proyeccion),
                               color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                              size: 40,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
+                            SizedBox(height: 12),
+                            Text(
+                              proyeccion,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            }).toList(),
           ),
-        ],
+        ),
       ),
     );
   }
