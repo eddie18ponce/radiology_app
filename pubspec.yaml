@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
+  url_launcher: ^6.0.12
+  open_file: ^3.2.1
 
 dev_dependencies:
   flutter_test:
@@ -21,6 +23,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - assets/towne1.jpg
-    - assets/towne2.jpg
-    - assets/skull2.jpg

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:open_file/open_file.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'search_helper.dart';
 
 // Mover el mapa patologiasPorRegion fuera de las clases, al inicio del archivo
 final Map<String, List<Map<String, String>>> patologiasPorRegion = {
@@ -46,7 +49,7 @@ class _DetailScreenState extends State<DetailScreen> {
   static final Map<String, List<String>> subregiones = {
     'Columna': ['Columna Cervical', 'Columna Torácica', 'Columna Lumbar'],
     'Miembros Superiores': ['Hombro', 'Humero', 'Codo', 'Muñeca', 'Mano'],
-    'Miembros Inferiores': ['Fémur', 'Tibia', 'Rodilla', 'Tobillo', 'Pie'],
+    'Miembros Inferiores': ['Cadera', 'Fémur', 'Rodilla', 'Tibia', 'Tobillo', 'Pie'],
     'Cabeza': ['Cráneo', 'Senos Paranasales', 'Órbitas', 'ATM'],
     'Torax': ['Parrilla Costal', 'Tórax Óseo', 'Pulmones'],
     'Abdomen': ['Abdomen Simple','Abdomen decubito lateral con rayo tangencial', 'Esogafograma', 'Serie Gastroduodenal', 'Tránsito Intestinal', 'Colon por Enema'],
@@ -61,7 +64,7 @@ class _DetailScreenState extends State<DetailScreen> {
     'Cráneo': ['AP', 'PA', 'Lateral', 'Towne', 'Caldwell'],
     'Senos Paranasales': ['Caldwell', 'Waters', 'Hirtz', 'Lateral'],
     'Órbitas': ['AP', 'Lateral', 'Rhese'],
-    'ATM': ['Lateral', 'Transorbital'],
+    'OPG': ['cefalometria', 'ATM','Panorámica'],
     'Parrilla Costal': ['AP', 'PA', 'Oblicuas'],
     'Tórax Óseo': ['AP', 'PA', 'Lateral', 'Oblicuas'],
     'Pulmones': ['AP', 'PA', 'Lateral', 'Decúbito'],
@@ -73,6 +76,16 @@ class _DetailScreenState extends State<DetailScreen> {
     'CUMS': ['AP', 'Lateral', 'Decúbito'],
     'Pelvis Ósea': ['AP', 'Inlet', 'Outlet', 'Rana', 'Falso Perfil', 'Dunn'],
     'Histerosalpingografía': ['AP', 'Lateral', 'Oblicuas'],
+    'Hombro': ['AP', 'Axial', 'Y de Escápula', 'Transtorácica'],
+    'Humero': ['AP', 'Lateral'],
+    'Codo': ['AP', 'Lateral', 'Oblicuas'],
+    'Muñeca': ['PA', 'Lateral', 'Oblicua', 'Escafoides'],
+    'Mano': ['PA', 'Oblicua', 'Lateral', 'Túnel Carpiano'],
+    'Fémur': ['AP', 'Lateral'],
+    'Rodilla': ['AP', 'Lateral', 'Axial de Rótula', 'Túnel'],
+    'Tibia': ['AP', 'Lateral'],
+    'Tobillo': ['AP', 'Lateral', 'Mortaja'],
+    'Pie': ['AP', 'Oblicua', 'Lateral', 'Calcáneo Axial'],
   };
 
   @override
@@ -180,7 +193,7 @@ class _DetailScreenState extends State<DetailScreen> {
   IconData _getIconForSubregion(String subregion) {
     if (subregion.contains('Columna')) return Icons.straighten;
     if (subregion.contains('Cráneo')) return Icons.face;
-    if (subregion.contains('Torax')) return Icons.monitor_heart;
+    if (subregion.contains('Torax')) return Icons.air;
     if (subregion.contains('Abdomen')) return Icons.accessibility_new;
     if (subregion.contains('Pulmones')) return Icons.air;
     if (subregion.contains('Miembros')) return Icons.accessibility;
@@ -191,9 +204,9 @@ class _DetailScreenState extends State<DetailScreen> {
 
   String _getImageForSubregion(String subregion) {
     try {
-      return 'assets/skull2.jpg';
+      return 'assets/images/patologias/craneo/fractura_lineal.jpg';
     } catch (e) {
-      return 'assets/skull2.jpg'; // Imagen por defecto si hay error
+      return 'assets/images/patologias/craneo/fractura_lineal.jpg'; // Imagen por defecto si hay error
     }
   }
 }
@@ -212,18 +225,18 @@ class SubregionScreen extends StatelessWidget {
   IconData _getIconForProyeccion(String proyeccion) {
     switch (proyeccion) {
       case 'AP':
-        return Icons.arrow_forward;
+        return Icons.face;
       case 'PA':
-        return Icons.arrow_back;
+        return Icons.face;
       case 'Lateral':
-        return Icons.arrow_right;
+        return Icons.face_outlined;
       case 'Oblicuas':
         return Icons.rotate_right;
       case 'Towne':
-        return Icons.face;
+        return Icons.face_retouching_natural;
       case 'Caldwell':
         return Icons.face_retouching_natural;
-      case 'Waters':
+      case 'Watters':
         return Icons.face_outlined;
       case 'Hirtz':
         return Icons.accessibility;
@@ -331,14 +344,18 @@ class ProyeccionDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('$proyeccion - $subregion'),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: SingleChildScrollView(
+        physics: ClampingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Imagen Radiológica
+              // Sección de Anatomía Radiológica
               Card(
                 elevation: 4.0,
                 child: Column(
@@ -348,125 +365,147 @@ class ProyeccionDetailScreen extends StatelessWidget {
                       child: Text(
                         'Anatomía Radiológica',
                         style: TextStyle(
-                          fontSize: 20.0, 
+                          fontSize: 20.0,
                           fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
+                          color: Colors.white,
                         ),
-                        textAlign: TextAlign.center,
                       ),
                     ),
                     Container(
                       height: 250,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: subregion == 'Cráneo' && proyeccion == 'Towne' 
-                        ? Image.asset(
-                            'assets/towne1.jpg',
-                            fit: BoxFit.contain,
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.image_outlined, size: 50, color: Colors.grey[400]),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Imagen anatómica pendiente',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                              ],
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.image_outlined, size: 50, color: Colors.grey[400]),
+                            SizedBox(height: 8),
+                            Text(
+                              'Imagen anatómica pendiente',
+                              style: TextStyle(color: Colors.grey[600]),
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
                     ),
-                    SizedBox(height: 12),
                   ],
                 ),
               ),
               SizedBox(height: 16.0),
 
-              // Posicionamiento Radiológico
+              // Sección de Descripción Técnica
               Card(
                 elevation: 4.0,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(12.0),
-                      child: Text(
-                        'Posicionamiento Radiológico',
-                        style: TextStyle(
-                          fontSize: 20.0, 
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Theme.of(context).primaryColor.withOpacity(0.8),
+                        Theme.of(context).primaryColor.withOpacity(0.6),
+                      ],
                     ),
-                    Container(
-                      height: 250,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: subregion == 'Cráneo' && proyeccion == 'Towne' 
-                        ? Image.asset(
-                            'assets/towne2.jpg',
-                            fit: BoxFit.contain,
-                          )
-                        : Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
                               children: [
-                                Icon(Icons.image_outlined, size: 50, color: Colors.grey[400]),
-                                SizedBox(height: 8),
+                                Icon(Icons.description, color: Colors.white),
+                                SizedBox(width: 8),
                                 Text(
-                                  'Imagen de posicionamiento pendiente',
-                                  style: TextStyle(color: Colors.grey[600]),
+                                  'Descripción Técnica',
+                                  style: TextStyle(
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                    ),
-                    SizedBox(height: 12),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16.0),
-
-              // Descripción Técnica
-              Card(
-                elevation: 4.0,
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Descripción Técnica',
-                        style: TextStyle(
-                          fontSize: 20.0, 
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).primaryColor,
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _mostrarImagenProyeccion(context);
+                              },
+                              icon: Icon(Icons.image, color: Colors.white),
+                              label: Text('Ver proyección'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white24,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        '• Posición del paciente:\n'
-                        '• Rayo central:\n'
-                        '• Estructuras visualizadas:\n'
-                        '• Criterios de calidad:\n',
-                        style: TextStyle(fontSize: 16.0, height: 1.5),
-                      ),
-                    ],
+                        SizedBox(height: 16),
+                        _buildTechnicalDetail(
+                          'Posición del paciente:',
+                          'Paciente de pie o sentado, hombro en posición neutra',
+                        ),
+                        SizedBox(height: 12),
+                        _buildTechnicalDetail(
+                          'Rayo central:',
+                          'Perpendicular al receptor de imagen, dirigido al centro de la articulación glenohumeral',
+                        ),
+                        SizedBox(height: 12),
+                        _buildTechnicalDetail(
+                          'Estructuras visualizadas:',
+                          'Articulación glenohumeral, acromion, clavícula lateral, cabeza humeral, cuello quirúrgico',
+                        ),
+                        SizedBox(height: 12),
+                        _buildTechnicalDetail(
+                          'Criterios de calidad:',
+                          'Articulación glenohumeral centrada, espacio articular visible, sin rotación',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
               SizedBox(height: 16.0),
 
               _buildPatologiasSection(context),
+
+              SizedBox(height: 20),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTechnicalDetail(String title, String content) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.white.withOpacity(0.9),
+          ),
+        ),
+        SizedBox(height: 4),
+        Text(
+          content,
+          style: TextStyle(
+            fontSize: 15.0,
+            color: Colors.white.withOpacity(0.8),
+            height: 1.4,
+          ),
+        ),
+      ],
     );
   }
 
@@ -492,7 +531,7 @@ class ProyeccionDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 20.0,
                       fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -521,7 +560,7 @@ class ProyeccionDetailScreen extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 20.0,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -533,6 +572,19 @@ class ProyeccionDetailScreen extends StatelessWidget {
               patologia['descripcion'] ?? '',
               patologia['imagePath'] ?? '',
             )).toList(),
+            ListTile(
+              title: Text('EPOC'),
+              subtitle: Text('Enfermedad Pulmonar Obstructiva Crónica'),
+              trailing: IconButton(
+                icon: Icon(Icons.info_outline),
+                onPressed: () async {
+                  const url = 'https://www.scielo.org.mx/scielo.php?script=sci_arttext&pid=S0026-17422020000300028';
+                  if (await canLaunch(url)) {
+                    await launch(url);
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -628,17 +680,155 @@ class ProyeccionDetailScreen extends StatelessWidget {
                         bottom: Radius.circular(16),
                       ),
                     ),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Imagen anatómica
+                            Center(
+                              child: RadiologiaHelper.obtenerImagenAnatomia(titulo) != null
+                                  ? Image.asset(
+                                      RadiologiaHelper.obtenerImagenAnatomia(titulo)!,
+                                      fit: BoxFit.contain,
+                                    )
+                                  : Text('Imagen anatómica pendiente'),
+                            ),
+                            SizedBox(height: 16),
+                            
+                            // Descripción técnica
+                            Text(
+                              'Descripción Técnica',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Builder(
+                              builder: (context) {
+                                final descripcionTecnica = 
+                                    RadiologiaHelper.obtenerDescripcionTecnica(titulo);
+                                if (descripcionTecnica != null) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Posición del paciente: ${descripcionTecnica['posicion_paciente'] ?? 'No especificado'}'),
+                                      Text('Rayo central: ${descripcionTecnica['rayo_central'] ?? 'No especificado'}'),
+                                      Text('Estructuras visualizadas: ${descripcionTecnica['estructuras_visualizadas'] ?? 'No especificado'}'),
+                                      Text('Criterios de calidad: ${descripcionTecnica['criterios_calidad'] ?? 'No especificado'}'),
+                                    ],
+                                  );
+                                } else {
+                                  return Text('Descripción técnica no disponible');
+                                }
+                              },
+                            ),
+                            SizedBox(height: 16),
+                            
+                            // Link de patología
+                            if (RadiologiaHelper.guiaRadiologica[titulo]?['link_patologia']?.isNotEmpty ?? false)
+                              InkWell(
+                                onTap: () async {
+                                  final url = RadiologiaHelper.guiaRadiologica[titulo]!['link_patologia'];
+                                  if (await canLaunch(url!)) {
+                                    await launch(url);
+                                  }
+                                },
+                                child: Text(
+                                  'Ver más información sobre la patología',
+                                  style: TextStyle(
+                                    color: Colors.blue,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _mostrarImagenProyeccion(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.9,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Proyección $proyeccion de $subregion',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black87,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(16),
+                      ),
+                    ),
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.image_outlined, size: 50, color: Colors.grey[400]),
-                          SizedBox(height: 8),
-                          Text(
-                            'Imagen de patología pendiente',
-                            style: TextStyle(color: Colors.grey[600]),
-                          ),
-                        ],
+                      child: FutureBuilder(
+                        // Aquí irá la lógica para cargar la imagen desde la base de datos
+                        future: Future.delayed(Duration(seconds: 1)), // Placeholder
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator(color: Colors.white);
+                          }
+                          // Aquí se mostrará la imagen cargada desde la base de datos
+                          return Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.image_outlined,
+                                size: 64,
+                                color: Colors.white54,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'Imagen de proyección pendiente',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

@@ -8,98 +8,105 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Radiología Interactiva'),
-        actions: [
-          AnimatedHelpButton(
-            onPressed: () => _mostrarAsistente(context),
+      ),
+      body: Column(
+        children: [
+          // Barra de búsqueda
+          Container(
+            padding: EdgeInsets.all(16),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Buscar por diagnóstico (ej: EPOC, fractura...)',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                filled: true,
+                fillColor: Colors.black26,
+              ),
+              onChanged: (value) {
+                if (value.length > 2) {
+                  _mostrarSugerencias(context, value);
+                }
+              },
+            ),
+          ),
+          // Imagen principal y botones
+          Expanded(
+            child: Stack(
+              children: [
+                Image.asset(
+                  'assets/skull2.jpg',
+                  fit: BoxFit.contain,
+                ),
+                // Botones sobre la imagen
+                Positioned(
+                  top: 20,
+                  left: 145,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Cabeza',
+                    Icons.face,
+                  ),
+                ),
+                Positioned(
+                  top: 90,
+                  left: 145,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Columna',
+                    Icons.straighten,
+                  ),
+                ),
+                Positioned(
+                  top: 140,
+                  right: 170,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Torax',
+                    Icons.accessibility,
+                  ),
+                ),
+                Positioned(
+                  top: 190,
+                  left: 155,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Abdomen',
+                    Icons.accessibility_new,
+                  ),
+                ),
+                Positioned(
+                  top: 260,
+                  right: 260,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Miembros Superiores',
+                    Icons.accessibility,
+                  ),
+                ),
+                Positioned(
+                  top: 450,
+                  right: 50,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Miembros Inferiores',
+                    Icons.accessibility,
+                  ),
+                ),
+                Positioned(
+                  top: 230,
+                  left: 155,
+                  child: _buildAnatomyButton(
+                    context,
+                    'Pelvis',
+                    Icons.accessibility_new,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return Container(
-            width: constraints.maxWidth,
-            height: constraints.maxHeight,
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    height: MediaQuery.of(context).size.height * 0.9,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Imagen de fondo
-                        Image.asset(
-                          'assets/skull2.jpg',
-                          fit: BoxFit.contain,
-                          height: constraints.maxHeight * 0.8,
-                        ),
-                        
-                        // Botones con sus posiciones originales
-                        Positioned(
-                          top: 90,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Cabeza'),
-                            child: _buildButton('Cabeza', Colors.blue),
-                          ),
-                        ),
-                        
-                        Positioned(
-                          top: 200,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Torax'),
-                            child: _buildButton('Torax', Colors.blue),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 270,
-                          left: 30,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Miembros Superiores'),
-                            child: _buildButton('Miembros Superiores', Colors.blue),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 450,
-                          right: 80,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Miembros Inferiores'),
-                            child: _buildButton('Miembros Inferiores', Colors.blue),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 140,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Columna'),
-                            child: _buildButton('Columna', Colors.blue),
-                          ),
-                        ),
-
-                        Positioned(
-                          top: 250,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Abdomen'),
-                            child: _buildButton('Abdomen', Colors.blue),
-                          ),
-                        ),
-                        
-                        Positioned(
-                          top: 300,
-                          child: InkWell(
-                            onTap: () => _openDetailScreen(context, 'Pelvis'),
-                            child: _buildButton('Pelvis', Colors.blue),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }
@@ -111,11 +118,139 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _mostrarAsistente(BuildContext context) {
+  void _mostrarSugerencias(BuildContext context, String query) {
+    List<String> sugerencias = RadiologiaHelper.buscarSugerencias(query);
+    
+    if (sugerencias.isEmpty) return;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AsistenteDialog();
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.6,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Diagnósticos encontrados',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: sugerencias.length,
+                    itemBuilder: (context, index) {
+                      final diagnostico = sugerencias[index];
+                      final recomendacion = RadiologiaHelper.guiaRadiologica[diagnostico];
+                      
+                      return ListTile(
+                        title: Text(diagnostico),
+                        subtitle: Text(
+                          '${recomendacion?['estudio']} - ${recomendacion?['proyeccion']}',
+                        ),
+                        trailing: IconButton(
+                          icon: Icon(Icons.arrow_forward),
+                          onPressed: () {
+                            Navigator.pop(context); // Cierra el diálogo
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProyeccionDetailScreen(
+                                  region: recomendacion?['region'] ?? '',
+                                  subregion: recomendacion?['subregion'] ?? '',
+                                  proyeccion: recomendacion?['proyeccion'] ?? '',
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        onTap: () {
+                          // Muestra un diálogo con más detalles
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text(diagnostico),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('Estudio: ${recomendacion?['estudio']}'),
+                                    Text('Región: ${recomendacion?['region']}'),
+                                    Text('Proyección: ${recomendacion?['proyeccion']}'),
+                                    Text('Descripción: ${recomendacion?['descripcion']}'),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: Text('Cancelar'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context); // Cierra el diálogo de detalles
+                                      Navigator.pop(context); // Cierra el diálogo de sugerencias
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ProyeccionDetailScreen(
+                                            region: recomendacion?['region'] ?? '',
+                                            subregion: recomendacion?['subregion'] ?? '',
+                                            proyeccion: recomendacion?['proyeccion'] ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Text('Ver proyección'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnatomyButton(BuildContext context, String title, IconData icon) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, color: Colors.white),
+      label: Text(
+        title,
+        style: TextStyle(color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30),
+        ),
+      ),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(region: title),
+          ),
+        );
       },
     );
   }
@@ -245,11 +380,54 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
   }
 
   void _navegarAProyeccion(BuildContext context, Map<String, dynamic> info) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DetailScreen(region: info['region'] as String),
-      ),
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: Text('¿Qué deseas ver?'),
+          content: Container(
+            width: double.minPositive,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.image, color: Theme.of(context).primaryColor),
+                  title: Text('Ver proyección radiológica'),
+                  subtitle: Text('Anatomía y posicionamiento'),
+                  onTap: () {
+                    Navigator.of(context).pop(); // Cerrar el diálogo actual
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DetailScreen(region: info['region'] as String),
+                      ),
+                    );
+                  },
+                ),
+                Divider(),
+                ListTile(
+                  leading: Icon(Icons.picture_as_pdf, color: Colors.red),
+                  title: Text('Información médica'),
+                  subtitle: Text('Guía clínica de la patología'),
+                  onTap: () {
+                    Navigator.of(context).pop(); // Cerrar el diálogo actual
+                    // Aquí irá la navegación al PDF cuando esté implementado
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Próximamente: Información médica en PDF'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -361,6 +539,7 @@ class _AsistenteDialogState extends State<AsistenteDialog> {
                                 children: categoria.value.map((patologia) {
                                   return ListTile(
                                     title: Text(patologia),
+                                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
                                     onTap: () {
                                       final info = RadiologiaHelper.guiaRadiologica[
                                           patologia.toLowerCase()];
@@ -424,4 +603,4 @@ Widget _buildButton(String text, Color color) {
       ),
     ),
   );
-} 
+}
