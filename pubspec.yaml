@@ -13,6 +13,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   url_launcher: ^6.0.12
   open_file: ^3.2.1
+  path_provider: ^2.1.2
+  connectivity_plus: ^5.0.2
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -23,3 +26,6 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
+    - assets/images/
+    - assets/images/anatomy/
+    - assets/images/patologias/

@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'detail_screen.dart';
 import 'search_helper.dart';
@@ -5,116 +6,182 @@ import 'search_helper.dart';
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Radiología Interactiva'),
+    return CupertinoPageScaffold(
+      navigationBar: CupertinoNavigationBar(
+        middle: Text(
+          'Radiología Interactiva',
+          style: TextStyle(
+            color: CupertinoColors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: CupertinoColors.white,
       ),
-      body: Column(
-        children: [
-          // Barra de búsqueda
-          Container(
-            padding: EdgeInsets.all(16),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar por diagnóstico (ej: EPOC, fractura...)',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                filled: true,
-                fillColor: Colors.black26,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Barra de búsqueda
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: CupertinoSearchTextField(
+                placeholder: 'Buscar por diagnóstico (ej: EPOC, fractura...)',
+                onChanged: (value) {
+                  if (value.length > 2) {
+                    _mostrarSugerencias(context, value);
+                  }
+                },
+                backgroundColor: CupertinoColors.systemGrey6,
               ),
-              onChanged: (value) {
-                if (value.length > 2) {
-                  _mostrarSugerencias(context, value);
-                }
-              },
             ),
-          ),
-          // Imagen principal y botones
-          Expanded(
-            child: Stack(
-              children: [
-                Image.asset(
-                  'assets/skull2.jpg',
-                  fit: BoxFit.contain,
-                ),
-                // Botones sobre la imagen
-                Positioned(
-                  top: 20,
-                  left: 145,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Cabeza',
-                    Icons.face,
+            // Imagen principal y botones
+            Expanded(
+              child: Stack(
+                children: [
+                  Image.asset(
+                    'assets/skull2.jpg',
+                    fit: BoxFit.contain,
                   ),
-                ),
-                Positioned(
-                  top: 90,
-                  left: 145,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Columna',
-                    Icons.straighten,
+                  // Botones sobre la imagen
+                  Positioned(
+                    top: 20,
+                    left: 145,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Cabeza',
+                      CupertinoIcons.heart,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 140,
-                  right: 170,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Torax',
-                    Icons.accessibility,
+                  Positioned(
+                    top: 90,
+                    left: 145,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Columna',
+                      CupertinoIcons.arrow_up_arrow_down,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 190,
-                  left: 155,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Abdomen',
-                    Icons.accessibility_new,
+                  Positioned(
+                    top: 140,
+                    right: 170,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Torax',
+                      CupertinoIcons.person,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 260,
-                  right: 260,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Miembros Superiores',
-                    Icons.accessibility,
+                  Positioned(
+                    top: 190,
+                    left: 155,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Abdomen',
+                      CupertinoIcons.person_2,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 450,
-                  right: 50,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Miembros Inferiores',
-                    Icons.accessibility,
+                  Positioned(
+                    top: 260,
+                    right: 260,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Miembros Superiores',
+                      CupertinoIcons.hand_raised,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: 230,
-                  left: 155,
-                  child: _buildAnatomyButton(
-                    context,
-                    'Pelvis',
-                    Icons.accessibility_new,
+                  Positioned(
+                    top: 450,
+                    right: 50,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Miembros Inferiores',
+                      CupertinoIcons.arrow_down,
+                    ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    top: 230,
+                    left: 155,
+                    child: _buildAnatomyButton(
+                      context,
+                      'Pelvis',
+                      CupertinoIcons.person_2_fill,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildAnatomyButton(BuildContext context, String text, IconData icon) {
+    return CupertinoButton(
+      padding: EdgeInsets.zero,
+      onPressed: () => _openDetailScreen(context, text),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: CupertinoColors.white.withOpacity(0.9),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: CupertinoColors.systemGrey4,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 24,
+              height: 24,
+              child: Image.asset(
+                _getImageForRegion(text),
+                fit: BoxFit.contain,
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              text,
+              style: TextStyle(
+                color: CupertinoColors.black,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getImageForRegion(String region) {
+    switch (region) {
+      case 'Cabeza':
+        return 'assets/images/anatomy/skull.png';
+      case 'Columna':
+        return 'assets/images/anatomy/spine.png';
+      case 'Torax':
+        return 'assets/images/anatomy/chest.png';
+      case 'Abdomen':
+        return 'assets/images/anatomy/abdomen.png';
+      case 'Miembros Superiores':
+        return 'assets/images/anatomy/upper_limbs.png';
+      case 'Miembros Inferiores':
+        return 'assets/images/anatomy/lower_limbs.png';
+      case 'Pelvis':
+        return 'assets/images/anatomy/pelvis.png';
+      default:
+        return 'assets/images/anatomy/default.png';
+    }
   }
 
   void _openDetailScreen(BuildContext context, String region) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => DetailScreen(region: region)),
+      CupertinoPageRoute(
+        builder: (context) => DetailScreen(region: region),
+      ),
     );
   }
 
@@ -123,132 +190,135 @@ class HomeScreen extends StatelessWidget {
     
     if (sugerencias.isEmpty) return;
 
-    showDialog(
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            color: CupertinoColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
           ),
-          child: Container(
-            padding: EdgeInsets.all(16),
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.6,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Diagnósticos encontrados',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: CupertinoColors.systemGrey5,
+                      width: 1,
+                    ),
                   ),
                 ),
-                SizedBox(height: 16),
-                Flexible(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: sugerencias.length,
-                    itemBuilder: (context, index) {
-                      final diagnostico = sugerencias[index];
-                      final recomendacion = RadiologiaHelper.guiaRadiologica[diagnostico];
-                      
-                      return ListTile(
-                        title: Text(diagnostico),
-                        subtitle: Text(
-                          '${recomendacion?['estudio']} - ${recomendacion?['proyeccion']}',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Diagnósticos encontrados',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: CupertinoColors.black,
+                      ),
+                    ),
+                    CupertinoButton(
+                      padding: EdgeInsets.zero,
+                      child: Text('Cerrar'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: sugerencias.length,
+                  itemBuilder: (context, index) {
+                    final diagnostico = sugerencias[index];
+                    final recomendacion = RadiologiaHelper.guiaRadiologica[diagnostico];
+                    
+                    return CupertinoListTile(
+                      title: Text(
+                        diagnostico,
+                        style: TextStyle(
+                          color: CupertinoColors.black,
+                          fontSize: 16,
                         ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.arrow_forward),
-                          onPressed: () {
-                            Navigator.pop(context); // Cierra el diálogo
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProyeccionDetailScreen(
-                                  region: recomendacion?['region'] ?? '',
-                                  subregion: recomendacion?['subregion'] ?? '',
-                                  proyeccion: recomendacion?['proyeccion'] ?? '',
-                                ),
+                      ),
+                      subtitle: Text(
+                        '${recomendacion?['estudio']} - ${recomendacion?['proyeccion']}',
+                        style: TextStyle(
+                          color: CupertinoColors.systemGrey,
+                          fontSize: 14,
+                        ),
+                      ),
+                      trailing: CupertinoButton(
+                        padding: EdgeInsets.zero,
+                        child: Icon(
+                          CupertinoIcons.chevron_right,
+                          color: CupertinoColors.systemGrey,
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                              builder: (context) => ProyeccionDetailScreen(
+                                region: recomendacion?['region'] ?? '',
+                                subregion: recomendacion?['subregion'] ?? '',
+                                proyeccion: recomendacion?['proyeccion'] ?? '',
                               ),
-                            );
-                          },
-                        ),
-                        onTap: () {
-                          // Muestra un diálogo con más detalles
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text(diagnostico),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('Estudio: ${recomendacion?['estudio']}'),
-                                    Text('Región: ${recomendacion?['region']}'),
-                                    Text('Proyección: ${recomendacion?['proyeccion']}'),
-                                    Text('Descripción: ${recomendacion?['descripcion']}'),
-                                  ],
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('Cancelar'),
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pop(context); // Cierra el diálogo de detalles
-                                      Navigator.pop(context); // Cierra el diálogo de sugerencias
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => ProyeccionDetailScreen(
-                                            region: recomendacion?['region'] ?? '',
-                                            subregion: recomendacion?['subregion'] ?? '',
-                                            proyeccion: recomendacion?['proyeccion'] ?? '',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    child: Text('Ver proyección'),
-                                  ),
-                                ],
-                              );
-                            },
+                            ),
                           );
                         },
-                      );
-                    },
-                  ),
+                      ),
+                      onTap: () {
+                        showCupertinoDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return CupertinoAlertDialog(
+                              title: Text(diagnostico),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Estudio: ${recomendacion?['estudio']}'),
+                                  Text('Región: ${recomendacion?['region']}'),
+                                  Text('Proyección: ${recomendacion?['proyeccion']}'),
+                                  Text('Descripción: ${recomendacion?['descripcion']}'),
+                                ],
+                              ),
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: Text('Cancelar'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoDialogAction(
+                                  child: Text('Ver detalles'),
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) => ProyeccionDetailScreen(
+                                          region: recomendacion?['region'] ?? '',
+                                          subregion: recomendacion?['subregion'] ?? '',
+                                          proyeccion: recomendacion?['proyeccion'] ?? '',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildAnatomyButton(BuildContext context, String title, IconData icon) {
-    return ElevatedButton.icon(
-      icon: Icon(icon, color: Colors.white),
-      label: Text(
-        title,
-        style: TextStyle(color: Colors.white),
-      ),
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-      ),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailScreen(region: title),
+              ),
+            ],
           ),
         );
       },
