@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                   // Botones sobre la imagen
                   Positioned(
                     top: 20,
-                    left: 145,
+                    left: 175,
                     child: _buildAnatomyButton(
                       context,
                       'Cabeza',
@@ -53,8 +53,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 90,
-                    left: 145,
+                    top: 100,
+                    left: 175,
                     child: _buildAnatomyButton(
                       context,
                       'Columna',
@@ -62,8 +62,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 140,
-                    right: 170,
+                    top: 145,
+                    right: 175,
                     child: _buildAnatomyButton(
                       context,
                       'Torax',
@@ -71,8 +71,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 190,
-                    left: 155,
+                    top: 198,
+                    left: 165,
                     child: _buildAnatomyButton(
                       context,
                       'Abdomen',
@@ -80,7 +80,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 260,
+                    top: 250,
                     right: 260,
                     child: _buildAnatomyButton(
                       context,
@@ -90,7 +90,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   Positioned(
                     top: 450,
-                    right: 50,
+                    right: 175,
                     child: _buildAnatomyButton(
                       context,
                       'Miembros Inferiores',
@@ -98,8 +98,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   Positioned(
-                    top: 230,
-                    left: 155,
+                    top: 235,
+                    left: 175,
                     child: _buildAnatomyButton(
                       context,
                       'Pelvis',
@@ -120,9 +120,9 @@ class HomeScreen extends StatelessWidget {
       padding: EdgeInsets.zero,
       onPressed: () => _openDetailScreen(context, text),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 9, vertical: 7),
         decoration: BoxDecoration(
-          color: CupertinoColors.white.withOpacity(0.9),
+          color: CupertinoColors.white.withOpacity(0.5),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: CupertinoColors.systemGrey4,
@@ -133,19 +133,19 @@ class HomeScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 24,
-              height: 24,
+              width: 25,
+              height: 15,
               child: Image.asset(
                 _getImageForRegion(text),
                 fit: BoxFit.contain,
               ),
             ),
-            SizedBox(width: 8),
+            SizedBox(width: 10),
             Text(
               text,
               style: TextStyle(
                 color: CupertinoColors.black,
-                fontSize: 14,
+                fontSize: 8,
                 fontWeight: FontWeight.w500,
               ),
             ),
